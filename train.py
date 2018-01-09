@@ -28,6 +28,8 @@ argparser.add_argument('--chunk_len', type=int, default=200)
 argparser.add_argument('--batch_size', type=int, default=100)
 argparser.add_argument('--shuffle', action='store_true')
 argparser.add_argument('--cuda', action='store_true')
+argparser.add_argument('--prime', type=str, default='Wh')
+argparser.add_argument('--print_len', type=int, default=100)
 args = argparser.parse_args()
 
 if args.cuda:
@@ -100,7 +102,7 @@ try:
 
         if epoch % args.print_every == 0:
             print('[%s (%d %d%%) %.4f]' % (time_since(start), epoch, epoch / args.n_epochs * 100, loss))
-            print(generate(decoder, 'Wh', 100, cuda=args.cuda), '\n')
+            print(generate(decoder, args.prime, args.print_len, cuda=args.cuda), '\n')
 
         if args.save_every > 0 and epoch % args.save_every == 0:
             save('.{}'.format(epoch))
