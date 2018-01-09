@@ -16,9 +16,11 @@ from generate import *
 # Parse command line arguments
 argparser = argparse.ArgumentParser()
 argparser.add_argument('filename', type=str)
+argparser.add_argument('-o', '--outdir', type=str, default='')
 argparser.add_argument('--model', type=str, default="gru")
 argparser.add_argument('--n_epochs', type=int, default=2000)
 argparser.add_argument('--print_every', type=int, default=100)
+argparser.add_argument('--save_every', type=int, default=0)
 argparser.add_argument('--hidden_size', type=int, default=100)
 argparser.add_argument('--n_layers', type=int, default=2)
 argparser.add_argument('--learning_rate', type=float, default=0.01)
@@ -65,8 +67,9 @@ def train(inp, target):
 
     return loss.data[0] / args.chunk_len
 
-def save():
-    save_filename = os.path.splitext(os.path.basename(args.filename))[0] + '.pt'
+def save(suffix=''):
+    save_filename = os.path.join(args.outdir,
+        os.path.splitext(os.path.basename(args.filename))[0] + suffix + '.pt')
     torch.save(decoder, save_filename)
     print('Saved as %s' % save_filename)
 
@@ -98,6 +101,9 @@ try:
         if epoch % args.print_every == 0:
             print('[%s (%d %d%%) %.4f]' % (time_since(start), epoch, epoch / args.n_epochs * 100, loss))
             print(generate(decoder, 'Wh', 100, cuda=args.cuda), '\n')
+
+        if args.save_every > 0 and epoch % args.save_every == 0:
+            save('.{}'.format(epoch))
 
     print("Saving...")
     save()
