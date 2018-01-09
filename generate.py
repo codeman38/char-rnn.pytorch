@@ -8,7 +8,8 @@ import argparse
 from helpers import *
 from model import *
 
-def generate(decoder, prime_str='A', predict_len=100, temperature=0.8, cuda=False):
+def generate(decoder, prime_str='A', predict_len=100, temperature=0.8,
+             truncate=0, cuda=False):
     hidden = decoder.init_hidden(1)
     prime_input = Variable(char_tensor(prime_str).unsqueeze(0))
 
@@ -28,6 +29,11 @@ def generate(decoder, prime_str='A', predict_len=100, temperature=0.8, cuda=Fals
         
         # Sample from the network as a multinomial distribution
         output_dist = output.data.view(-1).div(temperature).exp()
+        # If truncated, truncate the model to the top K
+        if truncate > 0:
+            probs, indices = torch.topk(output_dist, truncate)
+            output_dist[:] = 0
+            output_dist[indices] = probs
         top_i = torch.multinomial(output_dist, 1)[0]
 
         # Add predicted character to string and use as next input
@@ -48,6 +54,7 @@ if __name__ == '__main__':
     argparser.add_argument('-p', '--prime_str', type=str, default='A')
     argparser.add_argument('-l', '--predict_len', type=int, default=100)
     argparser.add_argument('-t', '--temperature', type=float, default=0.8)
+    argparser.add_argument('--truncate', type=int, default=0)
     argparser.add_argument('--cuda', action='store_true')
     args = argparser.parse_args()
 
