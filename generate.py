@@ -33,8 +33,10 @@ def generate_yield(decoder, vocab, prime_str='A', predict_len=100,
     for p in range(predict_len):
         output, hidden = decoder(inp, hidden)
         
+        # Normalize outputs to avoid overflow in exponentiation
+        output_norm = output.data.view(-1) - output.data.view(-1).max()
         # Sample from the network as a multinomial distribution
-        output_dist = output.data.view(-1).div(temperature).exp()
+        output_dist = output_norm.div(temperature).exp()
         # If truncated, truncate the model to the top K
         if truncate > 0:
             probs, indices = torch.topk(output_dist, truncate)
