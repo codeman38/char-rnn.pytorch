@@ -67,7 +67,7 @@ def train(inp, target):
     loss.backward()
     decoder_optimizer.step()
 
-    return loss.data[0] / args.chunk_len
+    return loss.item() / args.chunk_len
 
 def save(suffix=''):
     save_filename = os.path.join(args.outdir,
