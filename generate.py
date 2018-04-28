@@ -4,6 +4,7 @@
 import torch
 import os
 import argparse
+import warnings
 
 from helpers import *
 from model import *
@@ -64,11 +65,14 @@ if __name__ == '__main__':
     argparser.add_argument('--cuda', action='store_true')
     args = argparser.parse_args()
 
-    try:
-        vocab, decoder = torch.load(args.filename)
-    except TypeError:
-        vocab = string.printable
-        decoder = torch.load(args.filename)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore',
+                              torch.serialization.SourceChangeWarning)
+        try:
+            vocab, decoder = torch.load(args.filename)
+        except TypeError:
+            vocab = string.printable
+            decoder = torch.load(args.filename)
     del args.filename
     for ch in generate_yield(decoder, vocab, **vars(args)):
         print(ch, end='')
