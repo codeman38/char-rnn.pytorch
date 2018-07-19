@@ -27,12 +27,14 @@ def generate_yield(decoder, vocab, prime_str='A', predict_len=100,
 
     # Use priming string to "build up" hidden state
     for p in range(len(prime_str) - 1):
-        _, hidden = decoder(prime_input[:,p], hidden)
+        with torch.no_grad():
+            _, hidden = decoder(prime_input[:,p], hidden)
         
     inp = prime_input[:,-1]
     
     for p in range(predict_len):
-        output, hidden = decoder(inp, hidden)
+        with torch.no_grad():
+            output, hidden = decoder(inp, hidden)
         
         # Normalize outputs to avoid overflow in exponentiation
         output_norm = output.data.view(-1) - output.data.view(-1).max()
