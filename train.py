@@ -30,6 +30,7 @@ argparser.add_argument('--shuffle', action='store_true')
 argparser.add_argument('--cuda', action='store_true')
 argparser.add_argument('--prime', type=str, default='Wh')
 argparser.add_argument('--print_len', type=int, default=100)
+argparser.add_argument('--dropout', type=float, default=0)
 args = argparser.parse_args()
 
 if args.cuda:
@@ -83,7 +84,9 @@ decoder = CharRNN(
     len(vocab),
     model=args.model,
     n_layers=args.n_layers,
+    dropout=args.dropout,
 )
+decoder.train() # enable dropout layers
 decoder_optimizer = torch.optim.Adam(decoder.parameters(), lr=args.learning_rate)
 criterion = nn.CrossEntropyLoss()
 

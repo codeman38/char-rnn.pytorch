@@ -75,6 +75,7 @@ if __name__ == '__main__':
         except TypeError:
             vocab = string.printable
             decoder = torch.load(args.filename)
+    decoder.eval() # disable dropout layer
     del args.filename
     for ch in generate_yield(decoder, vocab, **vars(args)):
         print(ch, end='')

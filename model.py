@@ -5,7 +5,8 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 class CharRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, model="gru", n_layers=1):
+    def __init__(self, input_size, hidden_size, output_size, model="gru", n_layers=1,
+                 dropout=0.0):
         super(CharRNN, self).__init__()
         self.model = model.lower()
         self.input_size = input_size
@@ -13,23 +14,32 @@ class CharRNN(nn.Module):
         self.output_size = output_size
         self.n_layers = n_layers
 
+        self.dropout = nn.Dropout(dropout)
         self.encoder = nn.Embedding(input_size, hidden_size)
         if self.model == "gru":
-            self.rnn = nn.GRU(hidden_size, hidden_size, n_layers)
+            self.rnn = nn.GRU(hidden_size, hidden_size, n_layers, dropout=dropout)
         elif self.model == "lstm":
-            self.rnn = nn.LSTM(hidden_size, hidden_size, n_layers)
+            self.rnn = nn.LSTM(hidden_size, hidden_size, n_layers, dropout=dropout)
         self.decoder = nn.Linear(hidden_size, output_size)
 
     def forward(self, input, hidden):
         batch_size = input.size(0)
         encoded = self.encoder(input)
         output, hidden = self.rnn(encoded.view(1, batch_size, -1), hidden)
+        try:
+            output = self.dropout(output)
+        except AttributeError: # older model trained without a dropout layer
+            pass
         output = self.decoder(output.view(batch_size, -1))
         return output, hidden
 
     def forward2(self, input, hidden):
         encoded = self.encoder(input.view(1, -1))
         output, hidden = self.rnn(encoded.view(1, 1, -1), hidden)
+        try:
+            output = self.dropout(output)
+        except AttributeError: # older model trained without a dropout layer
+            pass
         output = self.decoder(output.view(1, -1))
         return output, hidden
 
