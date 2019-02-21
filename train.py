@@ -30,12 +30,16 @@ argparser.add_argument('--shuffle', action='store_true')
 argparser.add_argument('--cuda', action='store_true')
 argparser.add_argument('--prime', type=str, default='Wh')
 argparser.add_argument('--print_len', type=int, default=100)
+argparser.add_argument('--word', action='store_true')
 args = argparser.parse_args()
 
 if args.cuda:
     print("Using CUDA")
 
-file, file_len, vocab = read_file(args.filename)
+file, file_len, vocab = read_file(args.filename, args.word)
+
+if args.word:
+    args.prime = args.prime.split(' ')
 
 def random_training_set(chunk_len, batch_size):
     inp = torch.LongTensor(batch_size, chunk_len)
@@ -102,7 +106,7 @@ try:
 
         if epoch % args.print_every == 0:
             print('[%s (%d %d%%) %.4f]' % (time_since(start), epoch, epoch / args.n_epochs * 100, loss))
-            print(generate(decoder, vocab, args.prime, args.print_len, cuda=args.cuda), '\n')
+            print(generate(decoder, vocab, args.prime, args.print_len, cuda=args.cuda, delim=' ' if args.word else ''), '\n')
 
         if args.save_every > 0 and epoch % args.save_every == 0:
             save('.{}'.format(epoch))

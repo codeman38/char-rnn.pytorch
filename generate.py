@@ -10,9 +10,9 @@ from helpers import *
 from model import *
 
 def generate(decoder, vocab, prime_str='A', predict_len=100, temperature=0.8,
-             truncate=0, cuda=False):
-    return ''.join(generate_yield(decoder, vocab, prime_str, predict_len,
-                                  temperature, truncate, cuda))
+             truncate=0, cuda=False, delim=''):
+    return delim.join(generate_yield(decoder, vocab, prime_str, predict_len,
+                                     temperature, truncate, cuda))
 
 def generate_yield(decoder, vocab, prime_str='A', predict_len=100,
                     temperature=0.8, truncate=0, cuda=False):
@@ -50,7 +50,7 @@ def generate_yield(decoder, vocab, prime_str='A', predict_len=100,
         # Add predicted character to string and use as next input
         predicted_char = vocab[top_i]
         yield predicted_char
-        inp = Variable(char_tensor(predicted_char, vocab).unsqueeze(0))
+        inp = Variable(char_tensor([predicted_char], vocab).unsqueeze(0))
         if cuda:
             inp = inp.cuda()
 
@@ -63,9 +63,17 @@ if __name__ == '__main__':
     argparser.add_argument('-p', '--prime_str', type=str, default='A')
     argparser.add_argument('-l', '--predict_len', type=int, default=100)
     argparser.add_argument('-t', '--temperature', type=float, default=0.8)
+    argparser.add_argument('--word', action='store_true')
     argparser.add_argument('--truncate', type=int, default=0)
     argparser.add_argument('--cuda', action='store_true')
     args = argparser.parse_args()
+
+    if args.word:
+        del args.word
+        args.prime_str = args.prime_str.split(' ')
+        delim = ' '
+    else:
+        delim = ''
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore',
@@ -77,6 +85,6 @@ if __name__ == '__main__':
             decoder = torch.load(args.filename)
     del args.filename
     for ch in generate_yield(decoder, vocab, **vars(args)):
-        print(ch, end='')
+        print(ch, end=delim)
     print()
 
