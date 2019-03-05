@@ -69,11 +69,11 @@ if __name__ == '__main__':
     args = argparser.parse_args()
 
     if args.word:
-        del args.word
         args.prime_str = args.prime_str.split(' ')
         delim = ' '
     else:
         delim = ''
+    del args.word
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore',
